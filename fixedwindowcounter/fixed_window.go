@@ -8,10 +8,11 @@ import (
 )
 
 type fixedwindowcounter struct {
-	WindowDuration time.Duration
-	MaxRequests    int
-	userCache      map[string]int
-	mu             sync.Mutex
+	WindowDuration     time.Duration
+	MaxRequests        int
+	userCache          map[string]int
+	mu                 sync.Mutex
+	currentWindowStart time.Time
 
 	Clock limiterclock.LimiterClock
 }
@@ -32,6 +33,8 @@ func NewFixedWindowCounter(WindowDuration time.Duration, MaxRequests int, opts .
 		Clock:          &limiterclock.SystemClock{},
 	}
 
+	f.currentWindowStart = f.Clock.Now()
+
 	for _, option := range opts {
 		option(f)
 	}
@@ -42,11 +45,25 @@ func NewFixedWindowCounter(WindowDuration time.Duration, MaxRequests int, opts .
 // ConcurrentSafe
 func (f *fixedwindowcounter) AllowRequest(userId string) bool {
 
+	//check if the current window time has elapsed.
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.Clock.Now().Sub(f.currentWindowStart) > f.WindowDuration {
+		//Yes - set the currentWindowStart
+		f.currentWindowStart = f.Clock.Now()
+		f.userCache = make(map[string]int)
+	}
+	//lookup UserID in map for number of requests in this window.
+	if f.userCache[userId] < f.MaxRequests {
+		f.userCache[userId]++
+		return true
+	}
+
 	return false
 }
 
 // ConcurrentSafe
-func (f *fixedwindowcounter) AllowNRequests(userId string, requests int) bool {
+// func (f *fixedwindowcounter) AllowNRequests(userId string, requests int) bool {
 
-	return false
-}
+// 	return false
+// }
