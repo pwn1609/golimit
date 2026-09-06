@@ -4,7 +4,7 @@ A small Go library implementing a few common rate-limiting algorithms.
 
 ## Why this exists
 
-This is a weekend project, written entirely by hand, to
+This is a weekend project, written entirely by hand, to (purposful grammer mistake)
 exercise my manual coding muscles. Don't get to excited though, this README was obviously AI generated.
 
 ## Layout
