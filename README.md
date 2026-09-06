@@ -1,4 +1,4 @@
-# rate-limiter-library
+# golimit
 
 A small Go library implementing a few common rate-limiting algorithms.
 
